@@ -23,6 +23,9 @@ var LIVERELOAD_PORT = 35729;
 // ## express app server
 gulp.task('app', ['appIced', 'appServer', 'appWatch']);
 
+gulp.task('appWatch', function() {
+  // gulp.watch(APP_SRC_ROOT + '*.iced', ['appIced']);
+});
 
 gulp.task('appIced', function() {
   gulp.src(APP_SRC_ROOT + '**/*.iced')
@@ -34,7 +37,7 @@ gulp.task('appServer', function() {
   lrserver.listen(LIVERELOAD_PORT)
 
   $.nodemon({ 
-    script: APP_ROOT + 'app.js'
+    script: APP_ROOT + 'app.js',
     env: { 
       'NODE_ENV': 'development'
     },
@@ -42,17 +45,17 @@ gulp.task('appServer', function() {
       'gulpfile.js',
       CLIENT_SRC_ROOT,
       CLIENT_APP_ROOT
-    ],
+    ]
   })
-    .on('start', ['watch']) // start & change run watch - gets around nodemon reloading after every js update
-    .on('change', ['watch'])
+    // .on('start', ['watch']) // start & change run watch - gets around nodemon reloading after every js update
+    // .on('change', ['watch'])
     .on('restart', function () {
       console.log('appServer restarted!');
     });
 });
 
 
-gulp.task('appWatch', function() {
+gulp.task('appWatch', function() {  
   gulp.watch(APP_SRC_ROOT + '*.coffee', ['appIced'])
 });
 
@@ -128,7 +131,7 @@ gulp.task('clientTemplates', function() {
 
 
 gulp.task('watch', function() {
-  gulp.watch(APP_SRC_ROOT + '*.iced', ['appIced'])
+  gulp.watch(APP_SRC_ROOT + '*.iced', ['appIced']);
 
   gulp.watch(CLIENT_SRC_ROOT + 'stylesheets/**/*.less',['clientLess']);
   gulp.watch(CLIENT_SRC_ROOT + 'scripts/*.coffee', ['clientCoffee']);
@@ -139,6 +142,7 @@ gulp.task('watch', function() {
 // Default Task
 gulp.task('default', [
   'app',
+  // 'appWatch',
   'client',
   'watch'
   ]);
