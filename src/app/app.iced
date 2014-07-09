@@ -5,7 +5,7 @@ livereload = require('connect-livereload')
 
 EXPRESS_PORT = 4000;
 EXPRESS_ROOT = './app/public/';
-# LIVERELOAD_PORT = 35729;
+LIVERELOAD_PORT = 35729;
 
 
 console.log 'starting dev yo...'
@@ -13,6 +13,7 @@ console.log 'starting dev yo...'
 app = express()
 # console.log(app.env)
 
+app.use(livereload({port: LIVERELOAD_PORT} ) )
 app.use(express.static(EXPRESS_ROOT))
 
 # app.configure 'development', ->
@@ -23,13 +24,12 @@ app.use(express.static(EXPRESS_ROOT))
 #   )
 
 
-# app.use(livereload({port: LIVERELOAD_PORT}));
-# app.use(express.static(EXPRESS_ROOT));
+
 app.get '/blah', (req, res) ->
-  res.send 'blah 7!!!'
-
-console.log 'yoyo'
+  res.send 'blah!!'
 
 
-app.listen(4000)
+
+
+app.listen(EXPRESS_PORT)
 
