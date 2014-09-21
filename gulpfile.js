@@ -6,43 +6,77 @@ var embedlr = require('gulp-embedlr');
 var lrserver = require('tiny-lr')();
 var refresh = require('gulp-livereload');
 
-
+var lazypipe = require('lazypipe');
 
 // var APP_PORT = 4000;
-var APP_ROOT = './app/';
-var CLIENT_APP_ROOT = './app/public/';
+var APP_ROOT = 'app/';
+var CLIENT_APP_ROOT = 'app/public/';
 
-var APP_SRC_ROOT = './src/app/';
-var CLIENT_SRC_ROOT = './src/client/';
+var APP_SRC_ROOT = 'src/app/';
+var CLIENT_SRC_ROOT = 'src/client/';
 
 var LIVERELOAD_PORT = 35729;
 
 
-
-
 // ## express app server
-gulp.task('app', ['appIced', 'appServer', 'appWatch']);
+gulp.task('app', ['appCoffee', 'appViews', 'appServer']);
+
+var appCoffeePipe = lazypipe()
+  .pipe($.debug)
+  .pipe($.coffeelint)
+  .pipe($.coffeelint.reporter)
+  .pipe($.coffee, {
+    runtime: 'inline'
+  })  
+  .pipe(gulp.dest, APP_ROOT)  
+  ;
+
+var appViewPipe = lazypipe()
+  .pipe($.debug)
+  .pipe(gulp.dest, APP_ROOT + 'views')
 
 gulp.task('appWatch', function() {
-  // gulp.watch(APP_SRC_ROOT + '*.iced', ['appIced']);
+  $.watch(APP_SRC_ROOT + '**/*.coffee')
+    .pipe(appCoffeePipe())
+    .pipe(refresh(lrserver))
+    ;
+
+  $.watch(APP_SRC_ROOT + 'views/**/*.ejs')
+    .pipe(appViewPipe())
+    .pipe(refresh(lrserver))
+    ;
+
 });
 
-gulp.task('appIced', function() {
-  gulp.src(APP_SRC_ROOT + '**/*.iced')
-    .pipe($.iced({runtime: 'inline'}).on('error', $.util.log))
-    .pipe(gulp.dest(APP_ROOT))
+
+
+
+gulp.task('appCoffee', function() {
+  return gulp.src(APP_SRC_ROOT + '**/*.coffee')
+    .pipe(appCoffeePipe());    
 });
+
+gulp.task('appViews', function() {
+  return gulp.src(APP_SRC_ROOT + 'views/**/*')
+    .pipe(appViewPipe());    
+});
+
 
 gulp.task('appServer', function() {
   lrserver.listen(LIVERELOAD_PORT)
 
   $.nodemon({ 
     script: APP_ROOT + 'app.js',
+    ext: 'js',
+    // "verbose": true,
     env: { 
       'NODE_ENV': 'development'
-    },
+    },    
     ignore: [
       'gulpfile.js',
+      'src',
+      'dist',
+      'app/views/**/*',
       CLIENT_SRC_ROOT,
       CLIENT_APP_ROOT
     ]
@@ -53,12 +87,6 @@ gulp.task('appServer', function() {
       console.log('appServer restarted!');
     });
 });
-
-
-gulp.task('appWatch', function() {  
-  gulp.watch(APP_SRC_ROOT + '*.coffee', ['appIced'])
-});
-
 
 
 // ## client app
@@ -130,8 +158,8 @@ gulp.task('clientTemplates', function() {
 
 
 
-gulp.task('watch', function() {
-  gulp.watch(APP_SRC_ROOT + '*.iced', ['appIced']);
+
+gulp.task('clientWatch', function() {
 
   gulp.watch(CLIENT_SRC_ROOT + 'stylesheets/**/*.less',['clientLess']);
   gulp.watch(CLIENT_SRC_ROOT + 'scripts/*.coffee', ['clientCoffee']);
@@ -142,7 +170,7 @@ gulp.task('watch', function() {
 // Default Task
 gulp.task('default', [
   'app',
-  // 'appWatch',
+  'appWatch',
   'client',
-  'watch'
+  'clientWatch'
   ]);
