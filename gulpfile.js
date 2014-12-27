@@ -92,7 +92,7 @@ gulp.task('appServer', function() {
 // ## client app
 
 gulp.task('client', [
-  'clientCoffee', 
+  // 'clientCoffee', 
   'clientLess', 
   'clientTemplates', 
   'clientImages'
@@ -115,32 +115,32 @@ gulp.task('clientLess', function() {
     ;
 });
 
-gulp.task('clientCoffee', ['clientCoffeeMain']);
+// gulp.task('clientCoffee', ['clientCoffeeMain']);
 
-gulp.task('clientCoffeeMain', function() {
-  return browserifyClientCoffee(
-    CLIENT_SRC_ROOT + 'scripts/main.coffee',
-    CLIENT_APP_ROOT + 'scripts',
-    'app.js'
-    );
-});
+// gulp.task('clientCoffeeMain', function() {
+//   return browserifyClientCoffee(
+//     CLIENT_SRC_ROOT + 'scripts/main.coffee',
+//     CLIENT_APP_ROOT + 'scripts',
+//     'app.js'
+//     );
+// });
 
-function browserifyClientCoffee(src, dest, destFilename) {
-  return gulp.src(src, {
-      read: false
-    })
-    .pipe($.plumber())
-    .pipe($.browserify({
-      debug: true,
-      insertGlobals: false,
-      transform: ['coffeeify'],
-      extensions: ['.coffee']
-    }))
-    .pipe($.rename(destFilename))
-    .pipe(gulp.dest(dest))
-    .pipe(refresh(lrserver))    
-    ;
-}
+// function browserifyClientCoffee(src, dest, destFilename) {
+//   return gulp.src(src, {
+//       read: false
+//     })
+//     .pipe($.plumber())
+//     .pipe($.browserify({
+//       debug: true,
+//       insertGlobals: false,
+//       transform: ['coffeeify'],
+//       extensions: ['.coffee']
+//     }))
+//     .pipe($.rename(destFilename))
+//     .pipe(gulp.dest(dest))
+//     .pipe(refresh(lrserver))    
+//     ;
+// }
 
 gulp.task('clientImages', function() {
   return gulp.src(CLIENT_SRC_ROOT + 'images/*')
@@ -162,7 +162,7 @@ gulp.task('clientTemplates', function() {
 gulp.task('clientWatch', function() {
 
   gulp.watch(CLIENT_SRC_ROOT + 'stylesheets/**/*.less',['clientLess']);
-  gulp.watch(CLIENT_SRC_ROOT + 'scripts/*.coffee', ['clientCoffee']);
+  // gulp.watch(CLIENT_SRC_ROOT + 'scripts/*.coffee', ['clientCoffee']);
   gulp.watch(CLIENT_SRC_ROOT + '**/*.coffee', ['clientCoffeeLint']);
   gulp.watch(CLIENT_SRC_ROOT + '**/*.ejs', ['clientTemplates']);
 });
