@@ -1,3 +1,3 @@
-example = require("./example");
+example = require './example'
 
-
+console.log 'main 2'

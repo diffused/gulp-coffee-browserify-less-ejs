@@ -31,13 +31,21 @@ var appCoffeePipe = lazypipe()
   .pipe(gulp.dest, APP_ROOT)  
   ;
 
+// saved for js only apps  
+// var appJsPipe = lazypipe()
+//   .pipe($.debug)
+//   .pipe($.jshint)
+//   .pipe($.jshint.reporter)
+//   ;
+
 var appViewPipe = lazypipe()
   .pipe($.debug)
   .pipe(gulp.dest, APP_ROOT + 'views')
 
 gulp.task('appWatch', function() {
-  $.watch(APP_SRC_ROOT + '**/*.coffee')
+  $.watch(APP_SRC_ROOT + '**/*.js')
     .pipe(appCoffeePipe())
+    // .pipe(appJsPipe())
     .pipe(refresh(lrserver))
     ;
 
@@ -49,6 +57,13 @@ gulp.task('appWatch', function() {
 });
 
 
+
+// saved for js only apps  
+// gulp.task('appJs', function () {
+//   return gulp.src(APP_SRC_ROOT + '**/*.js')
+//     .pipe(appJsPipe())
+//     ;
+// });
 
 
 gulp.task('appCoffee', function() {
@@ -92,7 +107,8 @@ gulp.task('appServer', function() {
 // ## client app
 
 gulp.task('client', [
-  // 'clientCoffee', 
+  'clientCoffee', 
+  'bw',
   'clientLess', 
   'clientTemplates', 
   'clientImages'
@@ -115,32 +131,66 @@ gulp.task('clientLess', function() {
     ;
 });
 
-// gulp.task('clientCoffee', ['clientCoffeeMain']);
 
-// gulp.task('clientCoffeeMain', function() {
-//   return browserifyClientCoffee(
-//     CLIENT_SRC_ROOT + 'scripts/main.coffee',
-//     CLIENT_APP_ROOT + 'scripts',
-//     'app.js'
-//     );
+var sourcemaps = require('gulp-sourcemaps');
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
+var watchify = require('watchify');
+var browserify = require('browserify');
+var fs = require('fs');
+
+gulp.task('bw', function(){
+  watch = true;
+  browserifyShare();
+});
+
+function browserifyShare(){
+  var b = browserify({
+    cache: {},
+    packageCache: {},
+    fullPaths: true
+  });
+  
+  if(watch) {
+    // if watch is enable, wrap this bundle inside watchify
+    b = watchify(b);
+    b.on('update', function(){
+      bundleShare(b);
+    });
+  }
+  
+  b.add('./' + CLIENT_SRC_ROOT + 'scripts/main.js');
+  bundleShare(b);
+}
+
+function bundleShare(b) {
+  b.bundle()
+    .pipe(source('app.js'))
+    .pipe(gulp.dest('./' + CLIENT_APP_ROOT + 'scripts'))
+    .pipe(refresh(lrserver))
+    ;
+}
+
+
+// saved for js only apps
+// gulp.task('clientJs', ['clientJsMain']);
+
+// gulp.task('clientJsMain', function() {
+//   gulp.src(CLIENT_SRC_ROOT + 'scripts/**/*.js')
+//   .pipe($.jshint())
+//   .pipe($.jshint.reporter('default'))
+//   ;
 // });
 
-// function browserifyClientCoffee(src, dest, destFilename) {
-//   return gulp.src(src, {
-//       read: false
-//     })
-//     .pipe($.plumber())
-//     .pipe($.browserify({
-//       debug: true,
-//       insertGlobals: false,
-//       transform: ['coffeeify'],
-//       extensions: ['.coffee']
-//     }))
-//     .pipe($.rename(destFilename))
-//     .pipe(gulp.dest(dest))
-//     .pipe(refresh(lrserver))    
-//     ;
-// }
+gulp.task('clientCoffee', ['clientCoffeeMain']);
+
+gulp.task('clientCoffeeMain', function() {
+  gulp.src(CLIENT_SRC_ROOT + 'scripts/**/*.coffee')
+    .pipe($.coffee()).on('error', $.util.log)
+    .pipe(gulp.dest(CLIENT_SRC_ROOT + 'scripts'))
+    ;
+});
+
 
 gulp.task('clientImages', function() {
   return gulp.src(CLIENT_SRC_ROOT + 'images/*')
@@ -160,9 +210,8 @@ gulp.task('clientTemplates', function() {
 
 
 gulp.task('clientWatch', function() {
-
   gulp.watch(CLIENT_SRC_ROOT + 'stylesheets/**/*.less',['clientLess']);
-  // gulp.watch(CLIENT_SRC_ROOT + 'scripts/*.coffee', ['clientCoffee']);
+  gulp.watch(CLIENT_SRC_ROOT + 'scripts/*.coffee', ['clientCoffee']);
   gulp.watch(CLIENT_SRC_ROOT + '**/*.coffee', ['clientCoffeeLint']);
   gulp.watch(CLIENT_SRC_ROOT + '**/*.ejs', ['clientTemplates']);
 });
